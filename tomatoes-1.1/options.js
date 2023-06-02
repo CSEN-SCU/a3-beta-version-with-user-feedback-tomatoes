@@ -29,7 +29,8 @@ var form = document.getElementById('options-form'),
   saveSuccessfulEl = document.getElementById('save-successful'),
   timeFormatErrorEl = document.getElementById('time-format-error'),
   background = chrome.extension.getBackgroundPage(),
-  work_scenario = document.getElementById('strict-or-flexible'),
+    work_scenario = document.getElementById('strict-or-flexible'),
+    break_option = document.getElementById('free-or-physical')
   startCallbacks = {}, durationEls = {};
   
 durationEls['work'] = document.getElementById('work-duration');
@@ -73,12 +74,20 @@ form.onsubmit = function () {
     shouldRing:         shouldRingEl.checked,
     clickRestarts:      clickRestartsEl.checked,
     whitelist:          whitelistEl.selectedIndex == 1,
-    selectedIndex:      work_scenario.selectedIndex
+    selectedIndex: work_scenario.selectedIndex,
+    breakOption: break_option.selectedIndex
+
   })
   saveSuccessfulEl.className = 'show';
   return false;
 }
+break_option.onchange = function selectBreak() {
+    console.log("break option changed");
+    saveSuccessfulEl.removeAttribute('class');
+    timeFormatErrorEl.removeAttribute('class');
+    var breakOption = break_option.selectedIndex;
 
+}
 work_scenario.onchange = function selectWorking(){
   console.log("working scenario changed");
   saveSuccessfulEl.removeAttribute('class');
@@ -123,6 +132,7 @@ shouldRingEl.checked = background.PREFS.shouldRing;
 clickRestartsEl.checked = background.PREFS.clickRestarts;
 whitelistEl.selectedIndex = background.PREFS.whitelist ? 1 : 0;
 work_scenario.selectedIndex = background.PREFS.selectedIndex;
+break_option.selectedIndex = background.PREFS.breakOption;
 
 var duration, minutes, seconds;
 for(var key in durationEls) {

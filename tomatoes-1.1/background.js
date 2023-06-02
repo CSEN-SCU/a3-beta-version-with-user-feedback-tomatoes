@@ -44,7 +44,9 @@ function defaultPrefs() {
     shouldRing: true,
     clickRestarts: false,
     whitelist: false,
-    selectedIndex: 0
+    selectedIndex: 0,
+    breakOption: 0
+
   }
 }
 
@@ -325,7 +327,9 @@ function executeInAllBlockedTabs(action) {
 
 var notification, mainPomodoro = new Pomodoro({
   getDurations: function () { return PREFS.durations },
-  getMode: function () { return PREFS.selectedIndex },
+    getMode: function () { return PREFS.selectedIndex },
+    getOption: function () { return PREFS.breakOption },
+
   timer: {
     onEnd: function (timer) {
       chrome.browserAction.setIcon({
