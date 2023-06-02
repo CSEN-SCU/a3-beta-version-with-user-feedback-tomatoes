@@ -16,7 +16,7 @@
   "name": "Tomato Workflow Management",
   "options_page": "options.html",
   "permissions": [ "notifications", "tabs", "<all_urls>" ],
-  "version": "1.0.0",
+  "version": "1.2.0",
   "web_accessible_resources": [
     "icons/work_full.png",
     "icons/break_full.png"

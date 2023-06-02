@@ -144,13 +144,13 @@ function Pomodoro(options) {
   }
 
   this.start = function () {
+    var timerOptions = {};
     if(modeindex >= this.modes.length) {
       modeindex = 0; 
     }
     if(nextindex >= this.modes.length) {
       nextindex = 0; 
     }
-    var timerOptions = {};
     this.mostRecentMode = this.modes[modeindex];
     this.nextMode = this.modes[nextindex];
 
