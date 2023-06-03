@@ -6,7 +6,7 @@
 var modeindex = 0;
 var nextindex = 1;
 var timerOptions = {};
-var PREFS = loadPrefs(),
+var PREF = loadPref(),
 BADGE_BACKGROUND_COLORS = {
   work: [192, 0, 0, 255],
   break: [0, 192, 0, 255]
@@ -15,23 +15,22 @@ ringLoaded = false;
 
 loadRingIfNecessary();
 
-function defaultPrefs() {
+function defaultPref() {
   return {
     siteList: [
-      'facebook.com',
-      'youtube.com',
-      'twitter.com',
-      'tumblr.com',
-      'pinterest.com',
-      'myspace.com',
-      'livejournal.com',
-      'digg.com',
-      'stumbleupon.com',
-      'reddit.com',
-      'kongregate.com',
-      'newgrounds.com',
-      'addictinggames.com',
-      'hulu.com'
+        'youtube.com',
+        'facebook.com',
+        'tumblr.com',
+        'twitter.com',
+        'pinterest.com',
+        'myspace.com',
+        'livejournal.com',
+        'digg.com',
+        'stumbleupon.com',
+        'kongregate.com',
+        'newgrounds.com',
+        'addictinggames.com',
+        'hulu.com'
     ],
     durations: { // in seconds
       work: 25 * 60,
@@ -50,55 +49,51 @@ function defaultPrefs() {
   }
 }
 
-function loadPrefs() {
-  if(typeof localStorage['prefs'] !== 'undefined') {
-    return updatePrefsFormat(JSON.parse(localStorage['prefs']));
+function loadPref() {
+  if(typeof localStorage['pref'] !== 'undefined') {
+    return updatePrefFormat(JSON.parse(localStorage['pref']));
   } else {
-    return savePrefs(defaultPrefs());
+    return savePref(defaultPref());
   }
 }
 
-function updatePrefsFormat(prefs) {
-  // Sometimes we need to change the format of the PREFS module. When just,
-  // say, adding boolean flags with false as the default, there's no
-  // compatibility issue. However, in more complicated situations, we need
-  // to modify an old PREFS module's structure for compatibility.
+function updatePrefFormat(pref) {
+  // change the format of the PREF module, because sometimes we need
+  // to modify an old PREF module's structure for compatibility.
   
-  if(prefs.hasOwnProperty('domainBlacklist')) {
-    // Upon adding the whitelist feature, the domainBlacklist property was
-    // renamed to siteList for clarity.
+  if(pref.hasOwnProperty('domainBlacklist')) {
+    // If add whitelist feature, the domainBlacklist property was
+    // renamed to siteList.
     
-    prefs.siteList = prefs.domainBlacklist;
-    delete prefs.domainBlacklist;
-    savePrefs(prefs);
-    console.log("Renamed PREFS.domainBlacklist to PREFS.siteList");
+    pref.siteList = pref.domainBlacklist;
+    delete pref.domainBlacklist;
+    savePref(pref);
+    console.log("Renamed PREF.domainBlacklist to PREF.siteList");
   }
   
-  if(!prefs.hasOwnProperty('showNotifications')) {
-    // Upon adding the option to disable notifications, added the
-    // showNotifications property, which defaults to true.
-    prefs.showNotifications = true;
-    savePrefs(prefs);
-    console.log("Added PREFS.showNotifications");
+  if(!pref.hasOwnProperty('showNotifications')) {
+    pref.showNotifications = true;
+    savePref(pref);
+    console.log("Added PREF.showNotifications");
   }
   
-  return prefs;
+  return pref;
 }
 
-function savePrefs(prefs) {
-  localStorage['prefs'] = JSON.stringify(prefs);
-  return prefs;
+function savePref(pref) {
+  localStorage['pref'] = JSON.stringify(pref);
+  return pref;
 }
 
-function setPrefs(prefs) {
-  PREFS = savePrefs(prefs);
+function setPref(pref) {
+  PREF = savePref(pref);
   loadRingIfNecessary();
-  return prefs;
+  return pref;
 }
 
 function loadRingIfNecessary() {
   console.log('is ring necessary?');
-  if(PREFS.shouldRing && !ringLoaded) {
+  if(PREF.shouldRing && !ringLoaded) {
     console.log('ring is necessary');
     RING.onload = function () {
       console.log('ring loaded');
@@ -130,7 +125,7 @@ for(var i in iconTypeS) {
 */
 
 
-function Pomodoro(options) {
+function Tomato(options) {
   this.mostRecentMode = 'break';
   this.nextMode = 'work';
   this.running = false;
@@ -177,7 +172,7 @@ function Pomodoro(options) {
 
 
     this.running = true;
-    this.currentTimer = new Pomodoro.Timer(this, timerOptions);
+    this.currentTimer = new Tomato.Timer(this, timerOptions);
     this.currentTimer.start();
   }
   
@@ -188,9 +183,9 @@ function Pomodoro(options) {
   }
 }
 
-Pomodoro.Timer = function Timer(pomodoro, options) {
+Tomato.Timer = function Timer(tomato, options) {
   var tickInterval, timer = this;
-  this.pomodoro = pomodoro;
+  this.tomato = tomato;
   this.timeRemaining = options.duration;
   this.type = options.type;
 
@@ -218,7 +213,7 @@ Pomodoro.Timer = function Timer(pomodoro, options) {
     options.onTick(timer);
     if(timer.timeRemaining <= 0) {
       clearInterval(tickInterval);
-      pomodoro.onTimerEnd(timer);
+      tomato.onTimerEnd(timer);
       options.onEnd(timer);
     }
   }
@@ -244,43 +239,24 @@ function parseLocation(location) {
 }
 
 function pathsMatch(test, against) {
-  /*
-    index.php ~> [null]: pass
-    index.php ~> index: pass
-    index.php ~> index.php: pass
-    index.php ~> index.phpa: fail
-    /path/to/location ~> /path/to: pass
-    /path/to ~> /path/to: pass
-    /path/to/ ~> /path/to/location: fail
-  */
 
   return !against || test.substr(0, against.length) == against;
 }
 
 function domainsMatch(test, against) {
-  /*
-    google.com ~> google.com: case 1, pass
-    www.google.com ~> google.com: case 3, pass
-    google.com ~> www.google.com: case 2, fail
-    google.com ~> yahoo.com: case 3, fail
-    yahoo.com ~> google.com: case 2, fail
-    bit.ly ~> goo.gl: case 2, fail
-    mail.com ~> gmail.com: case 2, fail
-    gmail.com ~> mail.com: case 3, fail
-  */
 
-  // Case 1: if the two strings match, pass
+  // when the two strings match, pass
   if(test === against) {
     return true;
   } else {
     var testFrom = test.length - against.length - 1;
 
-    // Case 2: if the second string is longer than first, or they are the same
-    // length and do not match (as indicated by case 1 failing), fail
+    // when the second string is not first, or the same
+    // length and do not match, fail
     if(testFrom < 0) {
       return false;
     } else {
-      // Case 3: if and only if the first string is longer than the second and
+      //if and only if the first string is not the second and
       // the first string ends with a period followed by the second string,
       // pass
       return test.substr(testFrom) === '.' + against;
@@ -289,21 +265,16 @@ function domainsMatch(test, against) {
 }
 
 function isLocationBlocked(location) {
-  for(var k in PREFS.siteList) {
-    listedPattern = parseLocation(PREFS.siteList[k]);
+  for(var k in PREF.siteList) {
+    listedPattern = parseLocation(PREF.siteList[k]);
     if(locationsMatch(location, listedPattern)) {
-      // If we're in a whitelist, a matched location is not blocked => false
-      // If we're in a blacklist, a matched location is blocked => true
-      return !PREFS.whitelist;
+      return !PREF.whitelist;
     }
   }
-  
-  // If we're in a whitelist, an unmatched location is blocked => true
-  // If we're in a blacklist, an unmatched location is not blocked => false
-  return PREFS.whitelist;
+  return PREF.whitelist;
 }
 
-function executeInTabIfBlocked(action, tab) {
+function executeIfBlocked(action, tab) {
   var file = "content_scripts/" + action + ".js", location;
   location = tab.url.split('://');
   location = parseLocation(location[1]);
@@ -313,32 +284,32 @@ function executeInTabIfBlocked(action, tab) {
   }
 }
 
-function executeInAllBlockedTabs(action) {
+function executeAllBlockedTabs(action) {
   var windows = chrome.windows.getAll({populate: true}, function (windows) {
     var tabs, tab, domain, listedDomain;
     for(var i in windows) {
       tabs = windows[i].tabs;
       for(var j in tabs) {
-        executeInTabIfBlocked(action, tabs[j]);
+        executeIfBlocked(action, tabs[j]);
       }
     }
   });
 }
 
-var notification, mainPomodoro = new Pomodoro({
-  getDurations: function () { return PREFS.durations },
-    getMode: function () { return PREFS.selectedIndex },
-    getOption: function () { return PREFS.breakOption },
+var notification, mainTomato = new Tomato({
+  getDurations: function () { return PREF.durations },
+    getMode: function () { return PREF.selectedIndex },
+    getOption: function () { return PREF.breakOption },
 
   timer: {
     onEnd: function (timer) {
       chrome.browserAction.setIcon({
-        path: ICONS.ACTION.PENDING[timer.pomodoro.nextmodeindex]
+          path: ICONS.ACTION.PENDING[timer.tomato.nextmodeindex]
       });
       chrome.browserAction.setBadgeText({text: ''});
       
-      if(PREFS.showNotifications) {
-        var nextModeName = chrome.i18n.getMessage(timer.pomodoro.nextmodeindex);
+      if(PREF.showNotifications) {
+          var nextModeName = chrome.i18n.getMessage(timer.tomato.nextmodeindex);
         chrome.notifications.create("", {
           type: "basic",
           title: chrome.i18n.getMessage("timer_end_notification_header"),
@@ -349,7 +320,7 @@ var notification, mainPomodoro = new Pomodoro({
         }, function() {});
       }
       
-      if(PREFS.shouldRing) {
+      if(PREF.shouldRing) {
         console.log("playing ring", RING);
         RING.play();
       }
@@ -362,9 +333,9 @@ var notification, mainPomodoro = new Pomodoro({
         color: BADGE_BACKGROUND_COLORS[timer.type]
       });
       if(timer.type == 'work') {
-        executeInAllBlockedTabs('block');
+        executeAllBlockedTabs('block');
       } else {
-        executeInAllBlockedTabs('unblock');
+        executeAllBlockedTabs('unblock');
       }
       if(notification) notification.cancel();
       var tabViews = chrome.extension.getViews({type: 'tab'}), tab;
@@ -383,26 +354,25 @@ var notification, mainPomodoro = new Pomodoro({
 
 
 chrome.browserAction.onClicked.addListener(function (tab) {
-  if(mainPomodoro.running) { 
-      if(PREFS.clickRestarts) {
-          mainPomodoro.restart();
+    if (mainTomato.running) {
+      if(PREF.clickRestarts) {
+          mainTomato.restart();
       }
   } else {
-      mainPomodoro.start();
+        mainTomato.start();
   }
   modeindex++;
   nextindex++;
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  if(mainPomodoro.recentmodeindex == 'work') {
-    executeInTabIfBlocked('block', tab);
+    if (mainTomato.recentmodeindex == 'work') {
+    executeIfBlocked('block', tab);
   }
 });
 
 chrome.notifications.onClicked.addListener(function (id) {
-  // Clicking the notification brings you back to Chrome, in whatever window
-  // you were last using.
+  // Click the notification, then you are back to Chrome.
   chrome.windows.getLastFocused(function (window) {
     chrome.windows.update(window.id, {focused: true});
   });

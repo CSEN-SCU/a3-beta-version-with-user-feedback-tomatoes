@@ -2,7 +2,7 @@
   Localization
 */
 
-// Localize all elements with a data-i18n="message_name" attribute
+// Localize elements with a data-i18n="message_name" attribute
 var localizedElements = document.querySelectorAll('[data-i18n]'), el, message;
 for(var i = 0; i < localizedElements.length; i++) {
   el = localizedElements[i];
@@ -67,7 +67,7 @@ form.onsubmit = function () {
   console.log(durations);
   
   
-  background.setPrefs({
+  background.setPref({
     siteList:           siteListEl.value.split(/\r?\n/),
     durations:          durations,
     showNotifications:  showNotificationsEl.checked,
@@ -126,17 +126,17 @@ function formAltered() {
 }
 
 
-siteListEl.value = background.PREFS.siteList.join("\n");
-showNotificationsEl.checked = background.PREFS.showNotifications;
-shouldRingEl.checked = background.PREFS.shouldRing;
-clickRestartsEl.checked = background.PREFS.clickRestarts;
-whitelistEl.selectedIndex = background.PREFS.whitelist ? 1 : 0;
-work_scenario.selectedIndex = background.PREFS.selectedIndex;
-break_option.selectedIndex = background.PREFS.breakOption;
+siteListEl.value = background.PREF.siteList.join("\n");
+showNotificationsEl.checked = background.PREF.showNotifications;
+shouldRingEl.checked = background.PREF.shouldRing;
+clickRestartsEl.checked = background.PREF.clickRestarts;
+whitelistEl.selectedIndex = background.PREF.whitelist ? 1 : 0;
+work_scenario.selectedIndex = background.PREF.selectedIndex;
+break_option.selectedIndex = background.PREF.breakOption;
 
 var duration, minutes, seconds;
 for(var key in durationEls) {
-  duration = background.PREFS.durations[key];
+  duration = background.PREF.durations[key];
   seconds = duration % 60;
   minutes = (duration - seconds) / 60;
   if(seconds >= 10) {
@@ -169,6 +169,6 @@ startCallbacks.break = function () {
   setInputDisabled(false);
 }
 
-if(background.mainPomodoro.mostRecentMode == 'work') {
+if(background.mainTomato.mostRecentMode == 'work') {
   startCallbacks.work();
 }
