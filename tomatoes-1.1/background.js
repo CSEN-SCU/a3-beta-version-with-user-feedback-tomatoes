@@ -274,23 +274,23 @@ function isLocationBlocked(location) {
   return PREF.whitelist;
 }
 
-function executeIfBlocked(action, tab) {
+function executeIfBlocked(action, tab, breakOption) {
   var file = "content_scripts/" + action + ".js", location;
   location = tab.url.split('://');
   location = parseLocation(location[1]);
   
-  if(isLocationBlocked(location)) {
+    if (breakOption == 1 || isLocationBlocked(location)) {
     chrome.tabs.executeScript(tab.id, {file: file});
   }
 }
 
-function executeAllBlockedTabs(action) {
+function executeAllBlockedTabs(action,breakOption) {
   var windows = chrome.windows.getAll({populate: true}, function (windows) {
     var tabs, tab, domain, listedDomain;
     for(var i in windows) {
       tabs = windows[i].tabs;
       for(var j in tabs) {
-        executeIfBlocked(action, tabs[j]);
+        executeIfBlocked(action, tabs[j],breakOption);
       }
     }
   });
@@ -299,7 +299,6 @@ function executeAllBlockedTabs(action) {
 var notification, mainTomato = new Tomato({
   getDurations: function () { return PREF.durations },
     getMode: function () { return PREF.selectedIndex },
-    getOption: function () { return PREF.breakOption },
 
   timer: {
     onEnd: function (timer) {
@@ -319,11 +318,12 @@ var notification, mainTomato = new Tomato({
           iconUrl: ICONS.FULL[timer.type]
         }, function() {});
       }
-      
-      if(PREF.shouldRing) {
-        console.log("playing ring", RING);
-        RING.play();
-      }
+
+          if (PREF.shouldRing) {
+              console.log("playing ring", RING);
+              RING.play();
+          }
+
     },
     onStart: function (timer) {
       chrome.browserAction.setIcon({
@@ -332,10 +332,12 @@ var notification, mainTomato = new Tomato({
       chrome.browserAction.setBadgeBackgroundColor({
         color: BADGE_BACKGROUND_COLORS[timer.type]
       });
-      if(timer.type == 'work') {
-        executeAllBlockedTabs('block');
-      } else {
-        executeAllBlockedTabs('unblock');
+        if (timer.type == 'work') {
+          //set breakOption to 0 to only block the sites in the blacklist.
+        executeAllBlockedTabs('block', 0);
+        } else {
+            var action_str = PREF.breakOption == 1 ? 'block' : 'unblock';
+        executeAllBlockedTabs(action_str,PREF.breakOption);
       }
       if(notification) notification.cancel();
       var tabViews = chrome.extension.getViews({type: 'tab'}), tab;
@@ -367,8 +369,12 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (mainTomato.recentmodeindex == 'work') {
-    executeIfBlocked('block', tab);
-  }
+        executeIfBlocked('block', tab, 0);
+    }else {
+        var action_str = PREF.breakOption == 1 ? 'block' : 'unblock';
+        executeIfBlocked(action_str, tab, PREF.breakOption);
+    }
+
 });
 
 chrome.notifications.onClicked.addListener(function (id) {
